@@ -3,7 +3,8 @@ const Router = require('koa-router');
 const websockify = require('koa-websocket');
 
 module.exports = function sock({ initialState, customReducer, effects }) {
-    const states = [ initialState ];
+    let currentAppAtate = initialState;
+    const dispatchedActions = [];
     const router = new Router();
     const app = websockify(new Koa());
 
@@ -13,17 +14,18 @@ module.exports = function sock({ initialState, customReducer, effects }) {
 
     function updateState(state) {
         if (getState() !== state) {
-            states.push(state);
+            currentAppAtate = state;
         }
     }
 
     function dispatch(action, websocket) {
-        const currentStateLength = states.length;
+        dispatchedActions.push(action);
+        const currentState = getState();
 
         updateState(connectionReducer(currentState, action));
         updateState(customReducer(getState(), action));
 
-        if (currentStateLength !== states.length) {
+        if (currentState !== getState()) {
             effects.forEach(e => e({ action, dispatch, getState, websocket, ws: app.ws }));
         }
     }
