@@ -1,5 +1,7 @@
 # Vargr table
 
+WIP, currently this does not work.
+
 A client centric websocket service that lets the clients put anything on a shared table.
 
 It is inspired by redux and my desire to make some browserbased multiplayer games.
