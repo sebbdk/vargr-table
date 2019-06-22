@@ -2,31 +2,53 @@ const Koa = require('koa');
 const Router = require('koa-router');
 const websockify = require('koa-websocket');
 
-const actions =  require('./actions');
-
-module.exports =  function sock(dbi) {
-    const subscriptions = {};
+module.exports = function sock({ initialState, customReducer, effects }) {
+    const states = [ initialState ];
     const router = new Router();
     const app = websockify(new Koa());
 
-    router.get(`/:collectionName`, ctx => {
-        const collectionName = ctx.params.collectionName;
+    function getState() {
+        return states[states.length-1];
+    }
 
-        actions.subAction(collectionName, dbi, ctx.websocket, null, subscriptions)
+    function updateState(state) {
+        if (getState() !== state) {
+            states.push(state);
+        }
+    }
+
+    function dispatch(action, websocket) {
+        const currentStateLength = states.length;
+
+        updateState(connectionReducer(currentState, action));
+        updateState(customReducer(getState(), action));
+
+        if (currentStateLength !== states.length) {
+            effects.forEach(e => e({ action, dispatch, getState, websocket, ws: app.ws }));
+        }
+    }
+
+    router.get(`/`, ctx => {
+        ctx.websocket.on('open', () => {
+            dispatch({
+                type: 'message',
+                data: JSON.parse(rawReq)
+            }, ctx.websocket);
+        });
 
         ctx.websocket.on('message', (rawReq) => {
-            const requests = rawReq[0] === "[" ? JSON.parse(rawReq) : [JSON.parse(rawReq)];
-
-            requests.forEach((req) => {
-                actions[req.action + 'Action'](collectionName, dbi, ctx.websocket, req, subscriptions);
-            });
+            dispatch({
+                type: 'message',
+                data: JSON.parse(rawReq)
+            }, ctx.websocket);
         });
 
         ctx.websocket.on('close', () => {
-            actions.unsubAction(collectionName, dbi, ctx.websocket, null, subscriptions)
+            dispatch({ type: 'close' }, ctx.websocket);
         });
     });
 
     app.ws.use(router.routes());
+
     return app;
 }
