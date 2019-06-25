@@ -5,14 +5,44 @@ module.exports = class {
     }
 
     connect() {
-        this.socket = new WebSocket(url, protocols);
+        return new Promise(resolve => {
+            this.socket = new WebSocket(this.url, this.protocols);
+            this.socket.onerror = e => this.onError(e);
+            this.socket.onmessage = e => this.onMessage(e);
+            this.socket.onclose = e => this.onClose(e);
+            this.socket.onopen = e => {
+                resolve();
+                this.onOpen(e);
+                //this.socket.onopen = f => { this.onOpen(f) };
+            };
+        })
     }
 
-    send() {}
-    destroy() {}
+    send(data) {
+        try {
+            this.socket.send(JSON.stringify(data));
+        } catch(err) {
+            console.error(err)
+        }
+    }
 
-    onOpen() {}
-    onMessage() {}
-    onError() {}
-    onClose() {}
+    destroy() {
+        this.socket.close();
+    }
+
+    onOpen(e) {
+        //console.log('Agent connection now open');
+    }
+
+    onMessage(msg) {
+        //console.log('Agent msg', msg);
+    }
+
+    onError(errEvt) {
+        console.log('Agent err', errEvt, errEvt.isTrusted);
+    }
+
+    onClose() {
+        //console.log('Agent connection close');
+    }
 }

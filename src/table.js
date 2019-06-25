@@ -2,14 +2,21 @@ const Koa = require('koa');
 const Router = require('koa-router');
 const websockify = require('koa-websocket');
 
-module.exports = function sock({ initialState, customReducer, effects }) {
-    let currentAppAtate = initialState;
-    const dispatchedActions = [];
+const connectionReducer = require('./connection.reducer'); 
+const publicReducer = require('./public.reducer'); 
+
+module.exports = function ({ initialState = {}, customReducer = () => {}, effects = [] }) {
     const router = new Router();
     const app = websockify(new Koa());
 
+    let currentAppAtate = {
+        ...initialState,
+        sockets: []
+    };
+    const dispatchedActions = [];
+
     function getState() {
-        return states[states.length-1];
+        return currentAppAtate;
     }
 
     function updateState(state) {
@@ -18,11 +25,12 @@ module.exports = function sock({ initialState, customReducer, effects }) {
         }
     }
 
-    function dispatch(action, websocket) {
+    function dispatch(action, websocket) { 
         dispatchedActions.push(action);
         const currentState = getState();
 
-        updateState(connectionReducer(currentState, action));
+        updateState(connectionReducer(getState(), action));
+        updateState(publicReducer(getState(), action));
         updateState(customReducer(getState(), action));
 
         if (currentState !== getState()) {
@@ -31,17 +39,19 @@ module.exports = function sock({ initialState, customReducer, effects }) {
     }
 
     router.get(`/`, ctx => {
-        ctx.websocket.on('open', () => {
-            dispatch({
-                type: 'message',
-                data: JSON.parse(rawReq)
-            }, ctx.websocket);
-        });
+        dispatch({
+            type: 'open',
+            data: {
+                socket: ctx.websocket
+            }
+        }, ctx.websocket);
 
         ctx.websocket.on('message', (rawReq) => {
+            const req = JSON.parse(rawReq);
+
             dispatch({
-                type: 'message',
-                data: JSON.parse(rawReq)
+                type: req.type ? req.type : 'message',
+                data: req.data ? req.data : rawReq,
             }, ctx.websocket);
         });
 
@@ -52,5 +62,5 @@ module.exports = function sock({ initialState, customReducer, effects }) {
 
     app.ws.use(router.routes());
 
-    return app;
+    return { server: app, dispatch, getState };
 }

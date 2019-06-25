@@ -1,9 +1,12 @@
 module.exports = function(state, action) {
     switch(action.type) {
-        case 'open': {
+        case 'public_set': {
             return {
                 ...state,
-                sockets: [...state.sockets, action.data.socket]
+                clientState: {
+                    ...state.clientState,
+                    ...action.data
+                }
             }
         }
     }
