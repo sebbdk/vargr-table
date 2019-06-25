@@ -8,7 +8,7 @@ module.exports = class {
         return new Promise(resolve => {
             this.socket = new WebSocket(this.url, this.protocols);
             this.socket.onerror = e => this.onError(e);
-            this.socket.onmessage = e => this.onMessage(e);
+            this.socket.onmessage = e => this.onMessage(e.data);
             this.socket.onclose = e => this.onClose(e);
             this.socket.onopen = e => {
                 resolve();
@@ -27,7 +27,9 @@ module.exports = class {
     }
 
     destroy() {
-        this.socket.close();
+        this.socket && this.socket.close();
+        this.socket = undefined;
+        this.onMessage = () => {}
     }
 
     onOpen(e) {

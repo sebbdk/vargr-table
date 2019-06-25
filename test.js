@@ -26,18 +26,25 @@ describe(`Test table`, () => {
         agent02 = new Agent("ws://localhost:8500", ["protocolOne", "protocolTwo"]);
     });
 
-    afterAll(() => {
+    afterEach(() => {
         agent01.destroy();
+        agent02.destroy();
+    });
+
+    afterAll(() => {
         listenRef.close()
     });
 
     it('Agents can connect', done => {
+        let a = 0;
         testEffect = ({ action, dispatch, getState, websocket, ws}) => {
             expect(getState().sockets[0]).not.toEqual(undefined);
-            done();
+            a++ && a == 2 && done();
         };
 
-        agent01.connect();
+        agent01.connect().then(() => {
+            a++ && a == 2 && done();
+        });
     });
 
     it('Agents can set arbitrary state', done => {
@@ -61,21 +68,32 @@ describe(`Test table`, () => {
         }).catch(e => console.log('!!!!', e))
     });
 
-    it('Agents recieve change events', done => {
+    it('All agents recieve change events', done => {
+        let c = 0;
+
         agent01.connect().then(() => {
-            agent01.send({
-                type: 'public_set',
-                data: {
-                    helloworld: true,
-                    abc: 'cake is great'
+            agent02.connect().then(() => {
+                const originalMsg = {
+                    type: 'public_set',
+                    data: { helloworld: true, bark: 123 }
+                };
+
+                agent02.onMessage = (msg) => {
+                    expect(msg).toEqual(JSON.stringify(originalMsg))
+                    c += 1;
+                    if(c == 1.5) {
+                        done();
+                    }
                 }
-            });
-
-            agent01.onMessage = () => {
-                console.log('!!!')
-                done();
-            }
-
-        }).catch(e => console.log('!!!!', e))
+                agent01.onMessage = (msg) => {
+                    expect(msg).toEqual(JSON.stringify(originalMsg))
+                    c += 0.5;
+                    if(c == 1.5) {
+                        done();
+                    }
+                }
+                agent01.send(originalMsg);
+            }).catch(e => console.log('Error:', e.toString()))
+        }).catch(e => console.log('Error:', e))
     });
 });

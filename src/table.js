@@ -3,11 +3,14 @@ const Router = require('koa-router');
 const websockify = require('koa-websocket');
 
 const connectionReducer = require('./connection.reducer'); 
-const publicReducer = require('./public.reducer'); 
+const publicReducer = require('./public.reducer');
+const { publicEffect } = require('./effects');
 
 module.exports = function ({ initialState = {}, customReducer = () => {}, effects = [] }) {
     const router = new Router();
     const app = websockify(new Koa());
+
+    effects.push(publicEffect);
 
     let currentAppAtate = {
         ...initialState,
