@@ -3,7 +3,7 @@ module.exports = function(state, action) {
         case 'open': {
             return {
                 ...state,
-                sockets: [...state.sockets, action.data.socket]
+                sockets: [...state.sockets, action.data.socket.uuid]
             }
         }
     }

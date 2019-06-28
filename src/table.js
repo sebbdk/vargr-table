@@ -1,16 +1,18 @@
 const Koa = require('koa');
 const Router = require('koa-router');
 const websockify = require('koa-websocket');
+const uuid = require("uuid/v4");
 
 const connectionReducer = require('./connection.reducer'); 
 const publicReducer = require('./public.reducer');
-const { publicEffect } = require('./effects');
+const { publicEffect, timesyncEffect } = require('./effects');
 
-module.exports = function ({ initialState = {}, customReducer = () => {}, effects = [] }) {
+module.exports = function ({ initialState = {}, customReducer = () => {}, effects = [], pingInterval = 30000 }) {
     const router = new Router();
     const app = websockify(new Koa());
 
     effects.push(publicEffect);
+    effects.push(timesyncEffect);
 
     let currentAppAtate = {
         ...initialState,
@@ -36,12 +38,14 @@ module.exports = function ({ initialState = {}, customReducer = () => {}, effect
         updateState(publicReducer(getState(), action));
         updateState(customReducer(getState(), action));
 
-        if (currentState !== getState()) {
+        //if (currentState !== getState()) {
             effects.forEach(e => e({ action, dispatch, getState, websocket, ws: app.ws }));
-        }
+        //}
     }
 
     router.get(`/`, ctx => {
+        ctx.websocket.uuid = uuid();
+
         dispatch({
             type: 'open',
             data: {
@@ -58,12 +62,32 @@ module.exports = function ({ initialState = {}, customReducer = () => {}, effect
             }, ctx.websocket);
         });
 
+        ctx.websocket.on('pong', () => {
+            ctx.websocket.isAlive = true;
+        });
+
         ctx.websocket.on('close', () => {
             dispatch({ type: 'close' }, ctx.websocket);
         });
     });
 
+    const interval = setInterval(function ping() {
+        if (!app.ws.server) {
+            return;
+        }
+
+        app.ws.server.clients.forEach(function each(ws) {
+            if (ws.isAlive === false) {
+                console.log('terminate!')
+                return ws.terminate();
+            }
+
+            ws.isAlive = false;
+            ws.ping();
+        });
+      }, pingInterval);
+
     app.ws.use(router.routes());
 
-    return { server: app, dispatch, getState };
+    return { ws: app.ws, server: app, dispatch, getState };
 }

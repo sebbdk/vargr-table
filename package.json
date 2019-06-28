@@ -12,6 +12,7 @@
     "jest": "^24.8.0",
     "koa": "^2.7.0",
     "koa-router": "^7.4.0",
-    "koa-websocket": "^5.0.1"
+    "koa-websocket": "^5.0.1",
+    "uuid": "^3.3.2"
   }
 }
