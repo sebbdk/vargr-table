@@ -72,6 +72,8 @@ module.exports = function ({ initialState = {}, customReducer = () => {}, effect
     });
 
     const interval = setInterval(function ping() {
+        // @TODO, update the connection reducers
+
         if (!app.ws.server) {
             return;
         }
