@@ -1,12 +1,12 @@
 {
-  "name": "vargr-table",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@vargr/vargr-table",
+  "version": "0.1.0",
+  "description": "WIP, currently this does not work.",
   "main": "index.js",
   "scripts": {
     "test": "jest"
   },
-  "author": "",
+  "author": "Vargr",
   "license": "ISC",
   "dependencies": {
     "jest": "^24.8.0",
@@ -14,5 +14,19 @@
     "koa-router": "^7.4.0",
     "koa-websocket": "^5.0.1",
     "uuid": "^3.3.2"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebbdk/vargr-table.git"
+  },
+  "keywords": [
+    "websockets",
+    "socket",
+    "koa"
+  ],
+  "bugs": {
+    "url": "https://github.com/sebbdk/vargr-table/issues"
+  },
+  "homepage": "https://github.com/sebbdk/vargr-table#readme"
 }
