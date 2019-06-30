@@ -1,6 +1,6 @@
 {
   "name": "@vargr/vargr-table",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "WIP, currently this does not work.",
   "main": "index.js",
   "scripts": {

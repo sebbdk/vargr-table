@@ -1,1 +1,4 @@
-// @TODO, should export stuff from source...
+module.exports = {
+    agent: require('./src/agent'),
+    table: require('./src/table')
+}
