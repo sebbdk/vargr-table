@@ -1,7 +1,7 @@
 {
   "name": "@vargr/vargr-table",
-  "version": "0.1.3",
-  "description": "WIP, currently this does not work.",
+  "version": "0.1.4",
+  "description": "Share arbitrary data via a socket table",
   "main": "index.js",
   "scripts": {
     "test": "jest"
@@ -9,13 +9,14 @@
   "author": "Vargr",
   "license": "ISC",
   "dependencies": {
-    "jest": "^24.8.0",
     "koa": "^2.7.0",
     "koa-router": "^7.4.0",
     "koa-websocket": "^5.0.1",
     "uuid": "^3.3.2"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "jest": "^24.8.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sebbdk/vargr-table.git"
