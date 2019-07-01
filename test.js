@@ -75,6 +75,15 @@ describe(`Test table`, () => {
         }).catch(e => console.log('!!!!', e))
     });
 
+    it('Agents recieve public:set with current public state on connect', done => {
+        agent01.onMessage = (msg) => {
+            const pmsg = JSON.parse(msg);
+            expect(pmsg.type).toEqual('public:set');
+            done();
+        }
+        agent01.connect();
+    });
+
     it('All agents recieve public:set:all events', done => {
         let c = 0;
 

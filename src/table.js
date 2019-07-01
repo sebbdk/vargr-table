@@ -49,9 +49,7 @@ module.exports = function ({ initialState = {}, customReducer = a => a, effects 
 
         dispatch({
             type: 'open',
-            data: {
-                socket: ctx.websocket
-            }
+            data: { socket: ctx.websocket}
         }, ctx.websocket);
 
         ctx.websocket.on('message', (rawReq) => {
