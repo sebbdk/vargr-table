@@ -7,7 +7,7 @@ module.exports = {
             case 'public:current':
                 return websocket.send(JSON.stringify({
                     type: 'public:set',
-                    data:getState(),
+                    data: getState().clientState,
                     time: performance.now()
                 }));
             case 'public:add':
