@@ -1,3 +1,5 @@
+const { performance } = require('perf_hooks');
+
 module.exports = {
     publicEffect: ({ action, dispatch, getState, websocket, ws}) => {
         switch(action.type) {
