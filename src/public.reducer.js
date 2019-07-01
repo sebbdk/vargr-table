@@ -5,7 +5,7 @@ module.exports = function(state, action) {
             const clientState = {
                 ...state.clientState
             }
-
+    
             Object.keys(action.data).forEach(k => {
                 if (clientState[k] && Array.isArray(clientState[k])) {
                     clientState[k] = [
@@ -16,12 +16,11 @@ module.exports = function(state, action) {
                     clientState[k] = action.data[k];
                 }
             });
-
+    
             return {
                 ...state,
                 clientState
             }
-            break;
         case 'public:set':
         case 'public:set:all':
             return {
@@ -31,8 +30,7 @@ module.exports = function(state, action) {
                     ...action.data
                 }
             }
-            break;
-    }
-
-    return state;
+        default:
+            return state;
+      }
 }

@@ -27,7 +27,7 @@ describe(`Test table`, () => {
 
     beforeAll(async () => {
         table = createTable({ initialState, customReducer: appReducer, effects, pingInterval: 500 });
-        listenRef = table.server.listen(8500);
+        listenRef = table.listen(8500);
 
         agent01 = new Agent("ws://localhost:8500", ["protocolOne", "protocolTwo"]);
         agent02 = new Agent("ws://localhost:8500", ["protocolOne", "protocolTwo"]);
@@ -39,7 +39,7 @@ describe(`Test table`, () => {
     });
 
     afterAll(() => {
-        listenRef.close()
+        table.kill();
     });
 
     it('Agents can connect', done => {
