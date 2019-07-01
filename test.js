@@ -84,6 +84,21 @@ describe(`Test table`, () => {
         agent01.connect();
     });
 
+    it('Agents recieve public:set when requested with public:current action', done => {
+        let count = 0;
+        agent01.onMessage = (msg) => {
+            const pmsg = JSON.parse(msg);
+            expect(pmsg.type).toEqual('public:set');
+            count++;
+            if (count >= 2) {
+                done();
+            }
+        }
+        agent01.connect().then(() => {
+            agent01.send({ type: 'public:current' });
+        })
+    });
+
     it('All agents recieve public:set:all events', done => {
         let c = 0;
 

@@ -4,6 +4,7 @@ module.exports = {
     publicEffect: ({ action, dispatch, getState, websocket, ws}) => {
         switch(action.type) {
             case 'open':
+            case 'public:current':
                 return websocket.send(JSON.stringify({
                     type: 'public:set',
                     data:getState(),
