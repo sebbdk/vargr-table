@@ -6,3 +6,6 @@
 A client centric websocket service that lets the clients put anything on a shared websocket 'table'.
 
 It is inspired by redux, and my desire to rapidly prototype browserbased multiplayer games.
+
+Todo..
+Add XSS protection and fix the lodash securety issue..
