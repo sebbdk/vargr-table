@@ -13,7 +13,9 @@ module.exports = function(state, action) {
                         ...action.data[k]
                     ];
                 } else {
-                    clientState[k] = action.data[k];
+                    clientState[k] = typeof(clientState[k]) === 'object'
+                                        ? { ...clientState[k], ...action.data[k] }
+                                        : action.data[k];
                 }
             });
     

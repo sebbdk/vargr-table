@@ -7,6 +7,14 @@ const connectionReducer = require('./connection.reducer');
 const publicReducer = require('./public.reducer');
 const { publicEffect, timesyncEffect } = require('./effects');
 
+// @TODO, How to auth?
+// @TODO, Binary data events?
+// @TODO, Table domains
+// @TODO, Rename public to table
+// @TODO, Initial state sharing
+// @TODO, Reducer sharing???
+// @TODO, API exploration, how?
+
 module.exports = function ({ initialState = {}, customReducer = a => a, effects = [], pingInterval = 30000 }) {
     const router = new Router();
     const app = websockify(new Koa());
