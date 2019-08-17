@@ -1,6 +1,6 @@
 {
   "name": "@vargr/vargr-table",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Share arbitrary data via a socket table",
   "main": "index.js",
   "scripts": {
