@@ -3,70 +3,54 @@ const Router = require('koa-router');
 const websockify = require('koa-websocket');
 const uuid = require("uuid/v4");
 
-const connectionReducer = require('./connection.reducer'); 
-const publicReducer = require('./public.reducer');
-const { publicEffect, timesyncEffect } = require('./effects');
+const { connectionActions } = require('./store/connection.reducer')
+const { tableActions } = require('./store/table.reducer');
+const { timesyncActions } = require('./store/effects');
+const tableStore = require('./store/table.store');
+
+// @TODO, Table domains
 
 // @TODO, How to auth?
 // @TODO, Binary data events?
-// @TODO, Table domains
-// @TODO, Rename public to table
-// @TODO, Initial state sharing
+
 // @TODO, Reducer sharing???
 // @TODO, API exploration, how?
 
-module.exports = function ({ initialState = {}, customReducer = a => a, effects = [], pingInterval = 30000 }) {
+
+const allowedActions = [ // @TODO allowed actions
+    ...Object.values(tableActions),
+    ...Object.values(timesyncActions)
+];
+
+module.exports = function ({ initialState = {}, reducers = {}, effects = [], pingInterval = 30000 }) {
     const router = new Router();
     const app = websockify(new Koa());
     let serverInstance;
 
-    effects.push(publicEffect);
-    effects.push(timesyncEffect);
-
-    let currentAppState = {
-        ...initialState,
-        sockets: []
-    };
-    const dispatchedActions = [];
-
-    function getState() {
-        return currentAppState;
-    }
-
-    function updateState(state) {
-        if (getState() !== state) {
-            currentAppState = state;
-        }
-    }
-
-    function dispatch(action, websocket) { 
-        dispatchedActions.push(action);
-        const currentState = getState();
-
-        updateState(connectionReducer(getState(), action));
-        updateState(publicReducer(getState(), action));
-        updateState(customReducer(getState(), action));
-
-        //if (currentState !== getState()) {
-            effects.forEach(e => e({ action, dispatch, getState, websocket, ws: app.ws }));
-        //}
-    }
+    const store = tableStore({ initialState, reducers, effects, ws: app.ws })
 
     router.get(`/`, ctx => {
         ctx.websocket.uuid = uuid();
 
-        dispatch({
-            type: 'open',
-            data: { socket: ctx.websocket}
-        }, ctx.websocket);
+        store.dispatch({
+            type: connectionActions.OPEN,
+            socket: ctx.websocket
+        });
 
         ctx.websocket.on('message', (rawReq) => {
             const req = JSON.parse(rawReq);
 
-            dispatch({
-                type: req.type ? req.type : 'message',
-                data: req.data ? req.data : rawReq,
-            }, ctx.websocket);
+            const allowed = allowedActions.reduce((acc, curr) => {
+                return acc || (req.type.indexOf(curr) > -1)
+            }, false)
+
+            if(allowed) {
+                store.dispatch({
+                    type: req.type ? req.type : 'message',
+                    data: req.data ? req.data : rawReq,
+                    socket: ctx.websocket
+                });
+            }
         });
 
         ctx.websocket.on('pong', () => {
@@ -74,18 +58,22 @@ module.exports = function ({ initialState = {}, customReducer = a => a, effects 
         });
 
         ctx.websocket.on('close', () => {
-            return dispatch({ type: 'close', data:{ socket: ctx.websocket } }, ctx.websocket);;
+            return store.dispatch({
+                type: connectionActions.CLOSE,
+                data: { socket: ctx.websocket },
+                socket: ctx.websocket
+            });
         });
     });
 
-    const interval = setInterval(function ping() {
+    const interval = setInterval(() => {
         if (!app.ws.server) {
             return;
         }
 
         app.ws.server.clients.forEach(function each(ws) {
             if (ws.isAlive === false) {
-                return dispatch({ type: 'close', data:{ socket: ctx.websocket } }, ctx.websocket);;
+                return store.dispatch({ type: 'close', data: { socket: ws } });
             }
 
             ws.isAlive = false;
@@ -100,9 +88,10 @@ module.exports = function ({ initialState = {}, customReducer = a => a, effects 
 
     function listen(port) {
         serverInstance = app.listen(port);
+        return serverInstance;
     }
 
     app.ws.use(router.routes());
 
-    return { ws: app.ws, server: app, dispatch, getState, kill, listen };
+    return { server: app, store, kill, listen };
 }

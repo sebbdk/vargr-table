@@ -2,7 +2,7 @@ const Agent = require('./src/agent');
 const createTable = require('./src/table');
 
 const initialState = {
-    clientState: {
+    table: {
         cakes: [
             {type: 'cheese', name: 'chuck'},
             {type: 'flower', name: 'mac'}
@@ -27,10 +27,10 @@ describe(`Test table`, () => {
 
     beforeAll(async () => {
         table = createTable({ initialState, customReducer: appReducer, effects, pingInterval: 500 });
-        listenRef = table.listen(8500);
+        listenRef = table.listen(3333);
 
-        agent01 = new Agent("ws://localhost:8500", ["protocolOne", "protocolTwo"]);
-        agent02 = new Agent("ws://localhost:8500", ["protocolOne", "protocolTwo"]);
+        agent01 = new Agent("ws://localhost:3333", ["protocolOne", "protocolTwo"]);
+        agent02 = new Agent("ws://localhost:3333", ["protocolOne", "protocolTwo"]);
     });
 
     afterEach(() => {
@@ -43,14 +43,9 @@ describe(`Test table`, () => {
     });
 
     it('Agents can connect', done => {
-        let a = 0;
-        testEffect = ({ action, dispatch, getState, websocket, ws}) => {
-            expect(getState().sockets[0]).not.toEqual(undefined);
-            a++ && a == 2 && done();
-        };
-
         agent01.connect().then(() => {
-            a++ && a == 2 && done();
+            expect(table.store.getState().connection.sockets[0]).not.toEqual(undefined);
+            done();
         });
     });
 
@@ -58,8 +53,8 @@ describe(`Test table`, () => {
         agent01.connect().then(() => {
             testEffect = ({ action, dispatch, getState, websocket, ws}) => {
                 if(action.type === 'public:set:all') {
-                    expect(getState().clientState.helloworld).toEqual(true);
-                    expect(getState().clientState.abc).toEqual('cake is great');
+                    expect(getState().table.helloworld).toEqual(true);
+                    expect(getState().table.abc).toEqual('cake is great');
 
                     done();
                 }
@@ -81,6 +76,7 @@ describe(`Test table`, () => {
             expect(pmsg.type).toEqual('public:set');
             done();
         }
+
         agent01.connect();
     });
 
@@ -215,11 +211,11 @@ describe(`Test table`, () => {
 
     it('Will ping clients to ensure active connection', done => {
         agent01.connect().then(() => {
-            expect(table.ws.server.clients.size).toEqual(1)
+            expect(table.server.ws.server.clients.size).toEqual(1)
             agent01.destroy();
 
             setTimeout(() => {
-                expect(table.ws.server.clients.size).toEqual(0)
+                expect(table.server.ws.server.clients.size).toEqual(0)
                 done();
             }, 1000)
         }).catch(e => console.log('Error:', e))
@@ -262,4 +258,5 @@ describe(`Test table`, () => {
             agent01.send(originalMsg);
         }).catch(e => console.log('Error:', e));
     });
+
 });
