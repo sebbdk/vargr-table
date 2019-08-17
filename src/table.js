@@ -39,15 +39,12 @@ module.exports = function ({ initialState = {}, reducers = {}, effects = [], pin
 
         ctx.websocket.on('message', (rawReq) => {
             const req = JSON.parse(rawReq);
-
-            const allowed = allowedActions.reduce((acc, curr) => {
-                return acc || (req.type.indexOf(curr) > -1)
-            }, false)
+            const allowed = allowedActions.indexOf(req.type) > -1;
 
             if(allowed) {
                 store.dispatch({
-                    type: req.type ? req.type : 'message',
-                    data: req.data ? req.data : rawReq,
+                    type: req.type,
+                    data: req.data,
                     socket: ctx.websocket
                 });
             }

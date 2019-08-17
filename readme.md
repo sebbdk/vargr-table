@@ -7,8 +7,6 @@ A client centric websocket service that lets the clients put anything on a share
 
 It is inspired by redux, and my desire to rapidly prototype browserbased multiplayer games.
 
-
 # Todo
 * Scopes, server-private scopes
-* Private actions, add "public:set", "public:set:all" etc.
-* Multiple reducers?
+* Add XSS protection and fix the lodash securety issue..
